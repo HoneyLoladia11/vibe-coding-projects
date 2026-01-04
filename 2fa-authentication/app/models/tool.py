@@ -44,6 +44,8 @@ class Tool(Base):
     # Relationships
     creator = relationship("User", back_populates="tools", foreign_keys=[created_by])
     approver = relationship("User", back_populates="approved_tools", foreign_keys=[approved_by])
+    ratings = relationship("ToolRating", back_populates="tool", cascade="all, delete-orphan")
+    comments = relationship("ToolComment", back_populates="tool", cascade="all, delete-orphan")
     
     def __repr__(self):
         return f"<Tool(name='{self.name}', status='{self.status}', category='{self.category}')>"

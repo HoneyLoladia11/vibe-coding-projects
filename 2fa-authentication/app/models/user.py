@@ -35,6 +35,9 @@ class User(Base):
     tools = relationship("Tool", back_populates="creator", foreign_keys="Tool.created_by")
     approved_tools = relationship("Tool", back_populates="approver", foreign_keys="Tool.approved_by")
     audit_logs = relationship("AuditLog", back_populates="user")
+    ratings = relationship("ToolRating", back_populates="user")
+    comments = relationship("ToolComment", back_populates="user")
+    comment_votes = relationship("CommentVote", back_populates="user")
     
     def __repr__(self):
         return f"<User(username='{self.username}', role='{self.role}')>"

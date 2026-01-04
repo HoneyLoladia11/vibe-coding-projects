@@ -5,6 +5,7 @@ import time
 from app.config import get_settings
 from app.database import engine, Base
 from app.routers import auth_router, tools_router, admin_router
+from app.routers.ratings_comments import router as ratings_router
 
 settings = get_settings()
 
@@ -56,6 +57,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 app.include_router(auth_router)
 app.include_router(tools_router)
 app.include_router(admin_router)
+app.include_router(ratings_router)
 
 
 # Root endpoint
