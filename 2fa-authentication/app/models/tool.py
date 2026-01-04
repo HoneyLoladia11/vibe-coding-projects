@@ -1,0 +1,49 @@
+from sqlalchemy import Column, Integer, String, Text, DateTime, Enum as SQLEnum, ForeignKey
+from sqlalchemy.orm import relationship
+from datetime import datetime
+import enum
+from app.database import Base
+
+
+class ToolCategory(str, enum.Enum):
+    """Tool category enumeration"""
+    DEVELOPMENT = "development"
+    DESIGN = "design"
+    PRODUCTIVITY = "productivity"
+    COMMUNICATION = "communication"
+    ANALYTICS = "analytics"
+    OTHER = "other"
+
+
+class ToolStatus(str, enum.Enum):
+    """Tool approval status"""
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
+class Tool(Base):
+    """Tool model for managing developer tools"""
+    __tablename__ = "tools"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), nullable=False, index=True)
+    description = Column(Text, nullable=False)
+    category = Column(SQLEnum(ToolCategory), default=ToolCategory.OTHER, nullable=False, index=True)
+    status = Column(SQLEnum(ToolStatus), default=ToolStatus.PENDING, nullable=False, index=True)
+    url = Column(String(255), nullable=True)
+    
+    # Foreign keys
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    approved_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    
+    # Metadata
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    creator = relationship("User", back_populates="tools", foreign_keys=[created_by])
+    approver = relationship("User", back_populates="approved_tools", foreign_keys=[approved_by])
+    
+    def __repr__(self):
+        return f"<Tool(name='{self.name}', status='{self.status}', category='{self.category}')>"
