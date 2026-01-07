@@ -1,385 +1,472 @@
-# 2FA Authentication System
+# 2FA Authentication System 🔐
 
-A production-ready authentication system with Telegram 2FA, role-based access control, admin panel, and comprehensive audit logging built with FastAPI.
+Full-stack authentication system with Telegram 2FA, role-based access control, ratings & comments, and comprehensive admin panel.
 
-![Python](https://img.shields.io/badge/python-3.9+-blue.svg)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.109.0-green.svg)
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
+**Live Demo:** [Coming Soon]  
+**API Docs:** http://localhost:8000/docs (when running locally)
 
-## 🌟 Features
+---
 
-### Authentication & Security
-- ✅ User registration and login with JWT tokens
-- ✅ **Telegram 2FA** - Two-factor authentication via Telegram Bot
-- ✅ Bcrypt password hashing
-- ✅ Token-based session management
-- ✅ Secure code generation and verification
+## 🎯 Overview
 
-### Role-Based Access Control
-- ✅ **Three-tier role system:** User, Moderator, Admin
-- ✅ Route protection middleware
-- ✅ Permission-based endpoint access
-- ✅ Dynamic role assignment (admin only)
+A production-ready authentication and tool management platform featuring:
+- **Telegram 2FA** for secure login
+- **Role-based access** (User, Moderator, Admin)
+- **Tool management** with approval workflow
+- **Ratings & Comments** system with voting
+- **Admin dashboard** with statistics
+- **Modern React UI** with dark mode support
 
-### Admin Panel
-- ✅ Comprehensive tool management
-- ✅ Approval/rejection workflow
-- ✅ Advanced filtering (category, status, role)
-- ✅ User management dashboard
-- ✅ System statistics and analytics
+Built as part of the **Vibe Coding** course to demonstrate enterprise-grade architecture and best practices.
 
-### Performance & Monitoring
-- ✅ **Redis caching** - Tool lists and statistics
-- ✅ **Audit logging** - All critical actions tracked
-- ✅ Activity monitoring
-- ✅ IP address logging
-- ✅ Connection pooling
-
-## 🏗️ Tech Stack
-
-**Backend Framework:** FastAPI 0.109.0  
-**Database:** PostgreSQL 15 + SQLAlchemy ORM  
-**Cache:** Redis 7  
-**Authentication:** JWT + OAuth2 + Bcrypt  
-**2FA:** Telegram Bot API (python-telegram-bot)  
-**Migrations:** Alembic  
-**Container:** Docker & Docker Compose  
-
-## 📋 Prerequisites
-
-- Python 3.9+
-- PostgreSQL 15+
-- Redis 7+
-- Telegram Bot Token (from @BotFather)
-- Git
+---
 
 ## 🚀 Quick Start
 
-### Option 1: With Docker (Recommended)
+### Prerequisites
+- **Python 3.9+**
+- **Node.js 16+**
+- **PostgreSQL 15**
+- **Redis 7**
+- **Docker** (optional but recommended)
+
+### Option 1: Docker (Fastest)
 
 ```bash
-# Clone the repository
-git clone https://github.com/YOUR_USERNAME/vibe-coding-projects.git
-cd vibe-coding-projects/2fa-authentication
+# Clone the repo
+cd 2fa-authentication
 
-# Create environment file
-cp .env.example .env
-# Edit .env with your settings
+# Start everything
+docker-compose up
+```
 
-# Start PostgreSQL and Redis
-docker-compose up -d
+**Backend:** http://localhost:8000  
+**Frontend:** http://localhost:5173  
+**API Docs:** http://localhost:8000/docs
 
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate  # Linux/Mac
-# venv\Scripts\activate  # Windows
+### Option 2: Manual Setup
+
+#### Backend Setup
+
+```bash
+cd backend
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Run the application
-./run.sh
-```
+# Setup environment
+cp .env.example .env
+# Edit .env with your settings
 
-### Option 2: Manual Setup
-
-See [QUICKSTART.md](./QUICKSTART.md) for detailed step-by-step instructions.
-
-## 🔧 Configuration
-
-### 1. Create Telegram Bot
-
-1. Open Telegram and find **@BotFather**
-2. Send `/newbot`
-3. Follow instructions and get your **Bot Token**
-4. To get your Chat ID:
-   - Send a message to your bot
-   - Visit: `https://api.telegram.com/bot<YOUR_BOT_TOKEN>/getUpdates`
-   - Find `"chat":{"id":123456789}` in the JSON response
-
-### 2. Configure Environment Variables
-
-Edit `.env` file:
-
-```env
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/vibe_coding_db
-
-# Security
-SECRET_KEY=your-secret-key-here-change-in-production
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-
-# Telegram Bot
-TELEGRAM_BOT_TOKEN=your-telegram-bot-token-from-botfather
-
-# Redis
-REDIS_HOST=localhost
-REDIS_PORT=6379
-REDIS_DB=0
-```
-
-### 3. Initialize Database
-
-```bash
 # Run migrations
 alembic upgrade head
 
 # Create admin user
 python create_admin.py
-```
 
-### 4. Start Application
-
-```bash
-python app/main.py
-# or
+# Start backend
 uvicorn app.main:app --reload
 ```
 
-API will be available at: `http://localhost:8000`
-
-## 📚 API Documentation
-
-Once running, visit:
-
-- **Swagger UI:** http://localhost:8000/docs
-- **ReDoc:** http://localhost:8000/redoc
-
-## 🔐 API Usage Examples
-
-### Register User
+#### Frontend Setup
 
 ```bash
-curl -X POST "http://localhost:8000/api/auth/register" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "john_doe",
-    "email": "john@example.com",
-    "password": "secure123"
-  }'
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start frontend
+npm run dev
 ```
 
-### Login
+---
 
-```bash
-curl -X POST "http://localhost:8000/api/auth/login" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "john_doe",
-    "password": "secure123"
-  }'
-```
-
-### Setup Telegram 2FA
-
-```bash
-curl -X POST "http://localhost:8000/api/auth/setup-telegram" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "telegram_chat_id": "123456789"
-  }'
-```
-
-### Create Tool
-
-```bash
-curl -X POST "http://localhost:8000/api/tools" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "VS Code",
-    "description": "Popular code editor from Microsoft",
-    "category": "development",
-    "url": "https://code.visualstudio.com"
-  }'
-```
-
-For more examples, see [API_EXAMPLES.md](./API_EXAMPLES.md)
-
-## 📊 Project Structure
+## 📁 Project Structure
 
 ```
 2fa-authentication/
-├── app/
-│   ├── models/              # Database models
-│   │   ├── user.py         # User model & roles
-│   │   ├── tool.py         # Tool model & enums
-│   │   └── audit_log.py    # Audit logging
-│   ├── schemas/             # Pydantic schemas
-│   │   ├── user.py         # Request/Response schemas
-│   │   └── tool.py
-│   ├── routers/             # API endpoints
-│   │   ├── auth.py         # Authentication routes
-│   │   ├── tools.py        # Tool management
-│   │   └── admin.py        # Admin panel
-│   ├── services/            # Business logic
-│   │   ├── telegram.py     # Telegram 2FA service
-│   │   ├── cache.py        # Redis caching
-│   │   └── audit.py        # Audit logging
-│   ├── middleware/          # Custom middleware
-│   │   └── auth.py         # Role-based access
-│   ├── utils/               # Utilities
-│   │   └── security.py     # JWT, password hashing
-│   ├── config.py           # Configuration
-│   ├── database.py         # Database connection
-│   └── main.py             # FastAPI application
-├── alembic/                 # Database migrations
-├── .github/workflows/       # CI/CD pipeline
-├── requirements.txt
-├── docker-compose.yml
-├── README.md
-└── ...
+├── README.md                           # This file
+├── backend/                            # FastAPI Backend
+│   ├── app/
+│   │   ├── main.py                     # Application entry point
+│   │   ├── routers/                    # API endpoints
+│   │   │   ├── auth.py                 # Authentication & 2FA
+│   │   │   ├── tools.py                # Tool CRUD operations
+│   │   │   ├── admin.py                # Admin panel endpoints
+│   │   │   └── ratings_comments.py     # Ratings & Comments
+│   │   ├── models/                     # SQLAlchemy models
+│   │   │   ├── user.py
+│   │   │   ├── tool.py
+│   │   │   ├── tool_rating.py
+│   │   │   └── tool_comment.py
+│   │   ├── schemas/                    # Pydantic schemas
+│   │   ├── services/                   # Business logic
+│   │   │   ├── telegram.py             # Telegram 2FA service
+│   │   │   ├── cache.py                # Redis caching
+│   │   │   └── audit.py                # Audit logging
+│   │   ├── middleware/                 # Auth middleware
+│   │   └── utils/                      # Helper functions
+│   ├── requirements.txt
+│   ├── docker-compose.yml
+│   └── README.md                       # Backend-specific docs
+└── frontend/                           # React Frontend
+    ├── src/
+    │   ├── App.tsx                     # Main app component
+    │   ├── pages/                      # Page components
+    │   │   ├── Login.tsx
+    │   │   ├── Dashboard.tsx
+    │   │   ├── ToolDetails.tsx
+    │   │   ├── AdminPanel.tsx
+    │   │   └── Profile.tsx
+    │   ├── components/                 # Reusable components
+    │   │   ├── auth/
+    │   │   ├── ui/                     # Shadcn/UI components
+    │   │   └── StarRating.tsx
+    │   ├── contexts/                   # React contexts
+    │   │   ├── AuthContext.tsx
+    │   │   └── ThemeContext.tsx
+    │   └── lib/
+    │       └── api.ts                  # API client
+    ├── package.json
+    ├── vite.config.ts
+    └── README.md                       # Frontend-specific docs
 ```
 
-## 🎯 Key Endpoints
+---
 
-### Public Endpoints
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
+## ✨ Features
 
-### Authenticated Endpoints
-- `GET /api/auth/me` - Get current user
-- `POST /api/auth/setup-telegram` - Setup 2FA
-- `POST /api/auth/verify-2fa` - Verify 2FA code
-- `POST /api/tools` - Create tool
-- `GET /api/tools` - List tools (with filters)
-- `GET /api/tools/stats` - Tool statistics
+### 🔐 Authentication & Security
+- **Telegram 2FA** - Secure two-factor authentication via Telegram Bot
+- **JWT Tokens** - Stateless authentication with 30-minute expiration
+- **Password Hashing** - Bcrypt with salt
+- **Role-Based Access** - Three permission levels (User, Moderator, Admin)
+- **Session Management** - Automatic logout on token expiry
+- **Audit Logging** - Complete activity tracking
 
-### Moderator/Admin Endpoints
-- `GET /api/admin/tools/pending` - Pending tools
-- `POST /api/admin/tools/{id}/approve` - Approve/reject tool
-- `GET /api/admin/stats/overview` - System statistics
+### 🛠️ Tool Management
+- **CRUD Operations** - Create, read, update, delete tools
+- **Approval Workflow** - Moderators approve/reject submissions
+- **Categories** - Development, Design, Productivity, Communication, Analytics, Other
+- **Status Tracking** - Pending, Approved, Rejected
+- **Search & Filter** - By category, status, keyword
+- **Pagination** - Efficient data loading
 
-### Admin-Only Endpoints
-- `GET /api/admin/users` - List all users
-- `PUT /api/admin/users/{id}/role` - Update user role
-- `GET /api/admin/audit-logs` - View audit logs
+### ⭐ Ratings & Comments
+- **5-Star Ratings** - Users rate tools (1-5 stars)
+- **Rating Statistics** - Average rating, total ratings, distribution
+- **Comments** - Users can review and discuss tools
+- **Comment Voting** - Upvote/downvote comments
+- **Edit & Delete** - Users manage their own content
+- **Moderation** - Moderators can remove inappropriate content
+
+### 👨‍💼 Admin Panel
+- **Pending Tools** - Review and approve submissions
+- **User Management** - View users, change roles (Admin only)
+- **Statistics Dashboard** - Users by role, tools by status/category
+- **Activity Log** - Recent actions and changes
+- **Charts & Graphs** - Visual data representation with Recharts
+
+### 🎨 Modern UI/UX
+- **Dark/Light Mode** - User preference toggle
+- **Responsive Design** - Mobile, tablet, desktop support
+- **Loading States** - Skeleton loaders and spinners
+- **Error Handling** - Clear error messages and recovery
+- **Toast Notifications** - Success/error feedback
+- **Smooth Animations** - Tailwind CSS animations
+
+---
+
+## 🔌 API Endpoints
+
+### Authentication (`/api/auth/`)
+- `POST /register` - Create new account
+- `POST /login` - Login with username/password
+- `POST /verify-2fa` - Verify 2FA code
+- `POST /enable-2fa` - Enable Telegram 2FA
+- `POST /disable-2fa` - Disable 2FA
+- `POST /test-2fa` - Test 2FA setup
+- `POST /change-password` - Change password
+- `GET /me` - Get current user info
+
+### Tools (`/api/tools/`)
+- `GET /` - List tools (with filters & pagination)
+- `POST /` - Create new tool
+- `GET /{id}` - Get tool details
+- `PUT /{id}` - Update tool
+- `DELETE /{id}` - Delete tool
+- `GET /my` - Get my tools
+
+### Ratings (`/api/tools/{id}/`)
+- `POST /rate` - Rate a tool (1-5 stars)
+- `GET /my-rating` - Get my rating for this tool
+- `GET /ratings/stats` - Get rating statistics
+- `GET /ratings` - List all ratings
+- `DELETE /rate` - Delete my rating
+
+### Comments (`/api/tools/{id}/comments/`)
+- `POST /` - Add comment
+- `GET /` - List comments (paginated)
+- `PUT /{comment_id}` - Update comment
+- `DELETE /{comment_id}` - Delete comment
+- `POST /{comment_id}/vote` - Vote on comment (up/down)
+- `DELETE /{comment_id}/vote` - Remove vote
+
+### Admin (`/api/admin/`)
+- `GET /tools/pending` - Get pending tools
+- `POST /tools/{id}/approve` - Approve tool
+- `POST /tools/{id}/reject` - Reject tool (with reason)
+- `GET /users` - List all users
+- `PUT /users/{id}/role` - Change user role
+- `GET /statistics` - Get dashboard statistics
+
+---
+
+## 🛠️ Tech Stack
+
+### Backend
+| Technology | Purpose |
+|------------|---------|
+| **FastAPI** | High-performance web framework |
+| **SQLAlchemy** | ORM for database operations |
+| **Alembic** | Database migration management |
+| **PostgreSQL** | Primary relational database |
+| **Redis** | Caching and session storage |
+| **Pydantic** | Data validation and schemas |
+| **python-jose** | JWT token handling |
+| **passlib** | Password hashing (Bcrypt) |
+| **python-telegram-bot** | Telegram Bot API integration |
+
+### Frontend
+| Technology | Purpose |
+|------------|---------|
+| **React 18** | UI framework |
+| **TypeScript** | Type-safe JavaScript |
+| **Vite** | Fast build tool |
+| **React Router** | Client-side routing |
+| **TanStack Query** | Data fetching & caching |
+| **Tailwind CSS** | Utility-first CSS framework |
+| **Shadcn/UI** | Beautiful component library |
+| **Recharts** | Chart visualization |
+| **Lucide React** | Icon library |
+
+---
 
 ## 🔒 Security Features
 
-- **Password Security:** Bcrypt hashing with salt
-- **JWT Tokens:** Secure token-based authentication
-- **2FA Codes:** 6-digit codes with 5-minute expiration
-- **Role-Based Access:** Three-tier permission system
-- **Audit Logging:** All critical actions tracked
-- **Environment Variables:** No hardcoded secrets
-- **SQL Injection Protection:** SQLAlchemy ORM
+- ✅ **JWT Authentication** - Secure token-based auth
+- ✅ **Bcrypt Password Hashing** - Industry-standard hashing
+- ✅ **2FA via Telegram** - Additional security layer
+- ✅ **CORS Configuration** - Controlled cross-origin access
+- ✅ **SQL Injection Protection** - SQLAlchemy ORM
+- ✅ **XSS Protection** - React's built-in sanitization
+- ✅ **Environment Variables** - No hardcoded secrets
+- ✅ **Role-Based Authorization** - Granular access control
+- ✅ **Audit Logging** - Complete action history
+- ✅ **Token Expiration** - 30-minute JWT lifetime
+- ✅ **Password Complexity** - Minimum requirements enforced
 
-## 🎨 Database Schema
+---
+
+## 📊 Database Schema
 
 ### Users
-- ID, username, email, password_hash
-- Role (user/moderator/admin)
-- Telegram chat_id, is_2fa_enabled
-- Created timestamp
+- Authentication credentials
+- Role (User, Moderator, Admin)
+- 2FA settings (Telegram chat ID)
+- Created date
 
 ### Tools
-- ID, name, description, category
-- Status (pending/approved/rejected)
-- URL, created_by, approved_by
-- Created/updated timestamps
+- Name, description, category, URL
+- Status (Pending, Approved, Rejected)
+- Creator and approver references
+- Timestamps
+
+### Tool Ratings
+- User-tool relationship
+- Rating value (1-5)
+- Timestamps
+- Unique constraint (one rating per user per tool)
+
+### Tool Comments
+- Comment text
+- User-tool relationship
+- Upvote/downvote counts
+- Timestamps
+
+### Comment Votes
+- User-comment relationship
+- Vote type (upvote/downvote)
+- Unique constraint (one vote per user per comment)
 
 ### Audit Logs
-- ID, user_id, action, entity_type
-- Entity_id, details (JSON), ip_address
+- User action tracking
+- Entity type and ID
+- Action details
 - Timestamp
 
-## 📈 Performance
-
-### Caching Strategy
-- Tool lists cached for 5 minutes
-- Statistics cached for 5 minutes
-- 2FA codes cached for 5 minutes
-- Pattern-based cache invalidation
-
-### Optimization
-- Database connection pooling
-- Indexed database queries
-- Pagination support
-- Efficient query building
+---
 
 ## 🧪 Testing
 
-### Manual Testing
+### Backend Tests
 ```bash
-# Run test script
+cd backend
 python test_api.py
-
-# Create test users
-python create_admin.py
 ```
 
-### Automated Testing
-GitHub Actions CI/CD pipeline included:
-- Code linting (flake8)
-- Code formatting check (black)
-- Security scanning (bandit)
+### Frontend Tests
+```bash
+cd frontend
+npm run test
+```
 
-## 📖 Documentation
+### Manual Testing
+1. Start both backend and frontend
+2. Register a new account
+3. Enable 2FA via Telegram
+4. Create a tool
+5. Rate and comment on tools
+6. Test admin panel (if admin)
 
-- **README.md** - This file
-- **QUICKSTART.md** - Get started in 10 minutes
-- **API_EXAMPLES.md** - Complete API examples
-- **GITHUB_SETUP.md** - GitHub deployment guide
-- **PROJECT_OVERVIEW.md** - Technical deep dive
-- **CONTRIBUTING.md** - Contribution guidelines
+---
+
+## 📈 Performance Optimizations
+
+- **Redis Caching** - 5-minute TTL for frequently accessed data
+- **Database Indexing** - Optimized queries on foreign keys
+- **Pagination** - Efficient data loading
+- **Code Splitting** - React lazy loading
+- **Asset Optimization** - Vite build optimization
+- **API Response Compression** - Gzip compression
+- **Connection Pooling** - SQLAlchemy pool management
+
+---
 
 ## 🚀 Deployment
 
-### Production Checklist
-- [ ] Change SECRET_KEY to a strong random value
-- [ ] Update DATABASE_URL with production credentials
-- [ ] Configure Redis connection
-- [ ] Set up Telegram Bot
-- [ ] Enable HTTPS
-- [ ] Configure CORS for production domains
-- [ ] Set DEBUG=False
-- [ ] Run database migrations
-- [ ] Create admin user
-- [ ] Set up monitoring/logging
+### Backend Deployment
+- **Docker** - Containerized deployment
+- **Railway/Render** - Platform-as-a-Service options
+- **AWS/Azure/GCP** - Cloud infrastructure
+- **Environment Variables** - Configure via platform settings
 
-### Docker Deployment
-```bash
-docker-compose up -d
-```
+### Frontend Deployment
+- **Vercel** - Recommended for React/Vite
+- **Netlify** - Alternative option
+- **GitHub Pages** - Static hosting
+- **Cloudflare Pages** - Edge deployment
+
+### Environment Variables
+Ensure these are set in production:
+- `DATABASE_URL` - Production database
+- `REDIS_URL` - Production Redis instance
+- `JWT_SECRET_KEY` - Strong random secret
+- `TELEGRAM_BOT_TOKEN` - Bot token
+- `CORS_ORIGINS` - Frontend domain
+
+---
+
+## 📖 Documentation
+
+- **[Backend README](./backend/README.md)** - Backend setup and API details
+- **[Frontend README](./frontend/README.md)** - Frontend setup and components
+- **[API Examples](./backend/API_EXAMPLES.md)** - curl examples for all endpoints
+- **[Project Overview](./backend/PROJECT_OVERVIEW.md)** - Technical deep dive
+
+---
+
+## 🎓 What I Learned
+
+### Technical Skills
+- Building production-ready REST APIs with FastAPI
+- Implementing secure 2FA authentication flows
+- Designing role-based access control systems
+- Using Redis for caching and performance
+- Database modeling and migrations with Alembic
+- Modern React patterns (Hooks, Context, Custom Hooks)
+- TypeScript for type-safe frontend development
+- Component-based architecture with Shadcn/UI
+- State management with TanStack Query
+
+### Software Engineering
+- Clean code architecture and SOLID principles
+- Separation of concerns (Services, Routers, Models)
+- RESTful API design best practices
+- Security best practices (authentication, authorization, data protection)
+- Error handling and validation
+- API documentation with OpenAPI/Swagger
+- Git workflow and version control
+- Docker containerization
+
+---
+
+## 🐛 Known Issues & Future Improvements
+
+### Current Limitations
+- Comment `user_vote` tracking not fully implemented
+- No email notifications for events
+- Single bot token (not multi-tenant)
+- Basic search (no full-text search)
+
+### Future Enhancements
+- [ ] Email 2FA alternative
+- [ ] OAuth integration (Google, GitHub)
+- [ ] Advanced search with Elasticsearch
+- [ ] Real-time notifications (WebSocket)
+- [ ] Tool analytics and insights
+- [ ] User profiles with avatars
+- [ ] Tool collections/favorites
+- [ ] Export data functionality
+- [ ] Multi-language support
+- [ ] Mobile app (React Native)
+
+---
 
 ## 🤝 Contributing
 
-Contributions, issues, and feature requests are welcome!
+This is a learning project, but suggestions are welcome!
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## 📝 License
+---
 
-This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+## 📄 License
 
-## 👨‍💻 Author
+This project is licensed under the MIT License - see the [LICENSE](../LICENSE) file for details.
 
-Built as part of the Vibe Coding course
+---
+
+## 📫 Contact
+
+**Developer:** Yoan  
+**GitHub:** [@yoan9601](https://github.com/yoan9601)  
+**Course:** Vibe Coding  
+**Year:** 2026  
+
+---
 
 ## 🙏 Acknowledgments
 
-- FastAPI for the amazing framework
-- Telegram for the Bot API
-- SQLAlchemy for the powerful ORM
-- The Vibe Coding community
-
-## 📞 Support
-
-For issues or questions:
-1. Check the documentation
-2. Review API_EXAMPLES.md
-3. Check QUICKSTART.md for setup issues
-4. Open an issue on GitHub
+- **Vibe Coding** - For the excellent course structure
+- **FastAPI** - Amazing Python web framework
+- **Shadcn/UI** - Beautiful component library
+- **Lovable.dev** - AI-powered frontend generation
+- **Anthropic Claude** - AI assistance in development
 
 ---
 
 <div align="center">
 
-**Built with ❤️ using FastAPI**
+**Built with ❤️ and ☕ during Vibe Coding Course**
 
-⭐ Star this project if you find it helpful!
+⭐ **Star this repo if you find it helpful!**
+
+[🏠 Back to Portfolio](../) | [📖 Backend Docs](./backend/) | [🎨 Frontend Docs](./frontend/)
 
 </div>
