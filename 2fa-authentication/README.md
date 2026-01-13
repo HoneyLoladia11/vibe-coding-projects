@@ -34,17 +34,36 @@ Built as part of the **Vibe Coding** course to demonstrate enterprise-grade arch
 
 ```bash
 # Clone the repo
-cd 2fa-authentication
+cd 2fa-authentication/backend
 
-# Start everything
-docker-compose up
+# Setup environment
+cp .env.example .env
+# Edit .env with your SECRET_KEY and TELEGRAM_BOT_TOKEN
+
+# Start all services (PostgreSQL, Redis, Backend)
+docker-compose up -d
 ```
 
 **Backend:** http://localhost:8000  
-**Frontend:** http://localhost:5173  
 **API Docs:** http://localhost:8000/docs
 
-### Option 2: Manual Setup
+#### Frontend Setup (works with both Docker and Manual backend)
+
+```bash
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start frontend dev server
+npm run dev
+```
+
+**Frontend:** http://localhost:5173
+
+---
+
+### Option 2: Manual Setup (Without Docker)
 
 #### Backend Setup
 
