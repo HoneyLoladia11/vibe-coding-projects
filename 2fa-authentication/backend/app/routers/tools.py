@@ -1,11 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import or_, func
 from typing import List, Optional
 from app.database import get_db
 from app.models.user import User
 from app.models.tool import Tool, ToolStatus, ToolCategory
-from app.schemas.tool import ToolCreate, ToolUpdate, ToolResponse
-from app.utils.security import get_current_user
+from app.models.tool_rating import ToolRating
+from app.models.tool_comment import ToolComment
+from app.schemas.tool import (
+    ToolCreate, ToolUpdate, ToolResponse, ToolDetailResponse
+)
+from app.utils.security import get_current_user, get_current_user_optional
 from app.services.cache import cache_service
 from app.services.audit import audit_service
 
@@ -50,22 +55,57 @@ async def create_tool(
     return new_tool
 
 
-@router.get("", response_model=List[ToolResponse])
-async def get_tools(
+@router.get("/search", response_model=List[ToolResponse])
+async def search_tools(
+    q: str = Query(..., min_length=1, description="Search query"),
     category: Optional[ToolCategory] = None,
     status_filter: Optional[ToolStatus] = Query(None, alias="status"),
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db)
 ):
+    """
+    Search tools by name or description
+    
+    - **q**: Search query (minimum 1 character)
+    - **category**: Filter by category
+    - **status**: Filter by status
+    - **skip**: Number of records to skip (pagination)
+    - **limit**: Maximum number of records to return
+    """
+    
+    # Build search query
+    search_pattern = f"%{q}%"
+    query = db.query(Tool).filter(
+        or_(
+            Tool.name.ilike(search_pattern),
+            Tool.description.ilike(search_pattern)
+        )
+    )
+    
+    # Apply filters
+    if category:
+        query = query.filter(Tool.category == category)
+    
+    if status_filter:
+        query = query.filter(Tool.status == status_filter)
+    
+    # Execute query
+    tools = query.offset(skip).limit(limit).all()
+    
+    return tools
+
+
+@router.get("")
+async def get_tools(
+    category: Optional[ToolCategory] = None,
+    status_filter: Optional[ToolStatus] = Query(None, alias="status"),
+    search: Optional[str] = None,
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db)
+):
     """Get list of tools with optional filters"""
-    
-    # Try to get from cache
-    cache_key = f"tools:list:{category}:{status_filter}:{skip}:{limit}"
-    cached_data = cache_service.get(cache_key)
-    
-    if cached_data:
-        return cached_data
     
     # Build query
     query = db.query(Tool)
@@ -76,12 +116,22 @@ async def get_tools(
     if status_filter:
         query = query.filter(Tool.status == status_filter)
     
-    tools = query.offset(skip).limit(limit).all()
+    if search:
+        search_pattern = f"%{search}%"
+        query = query.filter(
+            or_(
+                Tool.name.ilike(search_pattern),
+                Tool.description.ilike(search_pattern)
+            )
+        )
     
-    # Cache results
-    cache_service.set(cache_key, [ToolResponse.from_orm(t).dict() for t in tools], expire=300)
+    # Get total count
+    total = query.count()
     
-    return tools
+    # Order by created_at descending and paginate
+    tools = query.order_by(Tool.created_at.desc()).offset(skip).limit(limit).all()
+    
+    return {"tools": tools, "total": total}
 
 
 @router.get("/stats")
@@ -117,9 +167,28 @@ async def get_tools_stats(db: Session = Depends(get_db)):
     return stats
 
 
-@router.get("/{tool_id}", response_model=ToolResponse)
-async def get_tool(tool_id: int, db: Session = Depends(get_db)):
-    """Get a specific tool by ID"""
+@router.get("/my", response_model=List[ToolResponse])
+async def get_my_tools(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get all tools created by current user"""
+    
+    tools = db.query(Tool).filter(Tool.created_by == user.id).order_by(Tool.created_at.desc()).all()
+    return tools
+
+
+@router.get("/{tool_id}", response_model=ToolDetailResponse)
+async def get_tool(
+    tool_id: int,
+    current_user: Optional[User] = Depends(get_current_user_optional),
+    db: Session = Depends(get_db)
+):
+    """
+    Get a specific tool by ID with extended details
+    
+    Returns tool with creator username, rating statistics, and user's rating
+    """
     
     tool = db.query(Tool).filter(Tool.id == tool_id).first()
     if not tool:
@@ -128,7 +197,37 @@ async def get_tool(tool_id: int, db: Session = Depends(get_db)):
             detail="Tool not found"
         )
     
-    return tool
+    # Build response with computed fields
+    tool_dict = {
+        **{k: v for k, v in tool.__dict__.items() if not k.startswith('_')},
+        "created_by_username": tool.creator.username if tool.creator else None,
+        "approved_by_username": tool.approver.username if tool.approver else None,
+    }
+    
+    # Calculate rating statistics
+    if tool.ratings:
+        total_ratings = len(tool.ratings)
+        sum_ratings = sum(r.rating for r in tool.ratings)
+        tool_dict["average_rating"] = round(sum_ratings / total_ratings, 2) if total_ratings > 0 else None
+        tool_dict["total_ratings"] = total_ratings
+    else:
+        tool_dict["average_rating"] = None
+        tool_dict["total_ratings"] = 0
+    
+    # Get current user's rating if authenticated
+    tool_dict["user_rating"] = None
+    if current_user:
+        user_rating = db.query(ToolRating).filter(
+            ToolRating.tool_id == tool_id,
+            ToolRating.user_id == current_user.id
+        ).first()
+        if user_rating:
+            tool_dict["user_rating"] = user_rating.rating
+    
+    # Count comments
+    tool_dict["total_comments"] = db.query(ToolComment).filter(ToolComment.tool_id == tool_id).count()
+    
+    return tool_dict
 
 
 @router.put("/{tool_id}", response_model=ToolResponse)
@@ -219,14 +318,3 @@ async def delete_tool(
     cache_service.clear_pattern("tools:*")
     
     return None
-
-
-@router.get("/my", response_model=List[ToolResponse])
-async def get_my_tools(
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Get all tools created by current user"""
-    
-    tools = db.query(Tool).filter(Tool.created_by == user.id).all()
-    return tools

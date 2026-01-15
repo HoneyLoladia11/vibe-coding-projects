@@ -9,16 +9,15 @@ class AuditLog(Base):
     __tablename__ = "audit_logs"
     
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
     
     # Action details
-    action = Column(String(50), nullable=False, index=True)  # e.g., "create", "update", "delete", "approve"
-    entity_type = Column(String(50), nullable=False)  # e.g., "tool", "user"
+    action = Column(String(50), nullable=False, index=True)
+    entity_type = Column(String(50), nullable=True)
     entity_id = Column(Integer, nullable=True)
     
     # Additional information
-    details = Column(JSON, nullable=True)  # Store additional context as JSON
-    ip_address = Column(String(45), nullable=True)  # Support IPv6
+    details = Column(JSON, nullable=True)
     
     # Metadata
     timestamp = Column(DateTime, default=datetime.utcnow, index=True)

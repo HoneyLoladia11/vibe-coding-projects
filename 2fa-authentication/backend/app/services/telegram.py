@@ -58,20 +58,12 @@ class TelegramService:
     async def verify_chat_id(self, chat_id: str) -> bool:
         """
         Verify if a Telegram chat ID is valid
-        
-        Args:
-            chat_id: Telegram chat ID to verify
-            
-        Returns:
-            bool: True if chat ID is valid
         """
-        if not self.bot:
-            raise ValueError("Telegram bot token not configured")
-        
+        # Simply check if chat_id is a valid number
         try:
-            await self.bot.get_chat(chat_id=chat_id)
+            int(chat_id)
             return True
-        except TelegramError:
+        except ValueError:
             return False
 
 

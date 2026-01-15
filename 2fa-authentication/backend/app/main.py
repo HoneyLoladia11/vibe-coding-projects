@@ -9,8 +9,8 @@ from app.routers.ratings_comments import router as ratings_router
 
 settings = get_settings()
 
-# Create database tables
-Base.metadata.create_all(bind=engine)
+# DON'T create tables here - use Alembic migrations instead!
+# Base.metadata.create_all(bind=engine)  # ❌ REMOVED - Use migrations!
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -21,10 +21,31 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# CORS middleware
+# CORS middleware with specific origins
+allowed_origins = [
+    "http://localhost:5173",  # Local development (Vite default)
+    "http://localhost:3000",  # Alternative local port
+    "http://localhost:8080",  # Vite dev server (alternative port)
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:8080",
+]
+
+# Add Lovable preview URLs
+lovable_patterns = [
+    "https://*.lovable.dev",
+    "https://*.lovableproject.com", 
+    "https://*.lovable.app",
+]
+
+# Get additional origins from environment
+if settings.cors_origins:
+    allowed_origins.extend(settings.cors_origins.split(","))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify exact origins
+    allow_origins=allowed_origins,
+    allow_origin_regex=r"https://.*\.lovable\.(dev|app|com)$|https://.*\.lovableproject\.com$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

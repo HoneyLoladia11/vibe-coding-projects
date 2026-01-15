@@ -21,27 +21,31 @@ class ToolUpdate(BaseModel):
 
 
 class ToolResponse(BaseModel):
-    """Schema for tool response"""
+    """Schema for tool response - matches Tool model exactly"""
     id: int
     name: str
     description: str
     category: ToolCategory
     status: ToolStatus
-    url: Optional[str]
+    url: Optional[str] = None
     created_by: int
-    created_by_id: int  # Alias for created_by
-    created_by_username: Optional[str] = None  # Creator username
-    approved_by: Optional[int]
+    approved_by: Optional[int] = None
     rejection_reason: Optional[str] = None
     created_at: datetime
     updated_at: datetime
-    # Rating information
-    average_rating: float = 0.0
-    total_ratings: int = 0
-    rating_distribution: Optional[dict] = None
     
     class Config:
         from_attributes = True
+
+
+class ToolDetailResponse(ToolResponse):
+    """Extended response with computed fields for detail views"""
+    created_by_username: Optional[str] = None
+    approved_by_username: Optional[str] = None
+    average_rating: Optional[float] = None
+    total_ratings: int = 0
+    user_rating: Optional[int] = None  # Current user's rating
+    total_comments: int = 0
 
 
 class ToolFilter(BaseModel):
@@ -59,6 +63,7 @@ class ToolApproval(BaseModel):
 
 class ToolsListResponse(BaseModel):
     """Schema for paginated tools list"""
-    tools: list
+    tools: list[ToolResponse]
     total: int
-
+    skip: int
+    limit: int

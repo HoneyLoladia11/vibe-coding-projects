@@ -16,6 +16,8 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # OAuth2 scheme
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+# OAuth2 scheme for optional authentication
+oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)
 
 
 def hash_password(password: str) -> str:
@@ -75,4 +77,28 @@ async def get_current_user(
     if user is None:
         raise credentials_exception
     
+    return user
+
+
+async def get_current_user_optional(
+    token: Optional[str] = Depends(oauth2_scheme_optional),
+    db: Session = Depends(get_db)
+) -> Optional[User]:
+    """
+    Get the current authenticated user from JWT token (optional)
+    Returns None if no token or invalid token
+    Used for endpoints that work both authenticated and unauthenticated
+    """
+    if token is None:
+        return None
+    
+    payload = decode_access_token(token)
+    if payload is None:
+        return None
+    
+    username: str = payload.get("sub")
+    if username is None:
+        return None
+    
+    user = db.query(User).filter(User.username == username).first()
     return user

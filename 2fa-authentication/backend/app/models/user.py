@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Boolean, DateTime, Enum as SQLEn
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
+
 from app.database import Base
 
 
@@ -19,17 +20,23 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(50), unique=True, index=True, nullable=False)
     email = Column(String(100), unique=True, index=True, nullable=False)
-    password_hash = Column(String(255), nullable=False)
+    hashed_password = Column(String(255), nullable=False)
     
-    # Role and permissions
-    role = Column(SQLEnum(UserRole), default=UserRole.USER, nullable=False)
+    # Role and permissions - use values_callable to ensure lowercase values
+    role = Column(
+        SQLEnum(UserRole, values_callable=lambda x: [e.value for e in x]),
+        default=UserRole.USER,
+        nullable=False
+    )
     
     # 2FA settings
-    telegram_chat_id = Column(String(100), nullable=True)
+    telegram_id = Column(String(50), nullable=True)
     is_2fa_enabled = Column(Boolean, default=False)
     
     # Metadata
+    is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
     tools = relationship("Tool", back_populates="creator", foreign_keys="Tool.created_by")

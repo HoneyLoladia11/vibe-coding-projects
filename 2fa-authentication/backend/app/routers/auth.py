@@ -38,7 +38,7 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
     new_user = User(
         username=user_data.username,
         email=user_data.email,
-        password_hash=hash_password(user_data.password)
+        hashed_password=hash_password(user_data.password)
     )
     
     db.add(new_user)
@@ -63,14 +63,14 @@ async def login(credentials: UserLogin, db: Session = Depends(get_db)):
     
     # Find user
     user = db.query(User).filter(User.username == credentials.username).first()
-    if not user or not verify_password(credentials.password, user.password_hash):
+    if not user or not verify_password(credentials.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password"
         )
     
     # Check if 2FA is enabled
-    if user.is_2fa_enabled and user.telegram_chat_id:
+    if user.is_2fa_enabled and user.telegram_id:
         # Generate and send 2FA code
         code = telegram_service.generate_code()
         
@@ -79,7 +79,7 @@ async def login(credentials: UserLogin, db: Session = Depends(get_db)):
         cache_service.set(cache_key, code, expire=300)
         
         # Send code via Telegram
-        success = await telegram_service.send_code(user.telegram_chat_id, code)
+        success = await telegram_service.send_code(user.telegram_id, code)
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -152,7 +152,7 @@ async def verify_2fa(
     return Token(access_token=access_token)
 
 
-@router.post("/setup-telegram", response_model=UserResponse)
+@router.post("/enable-2fa", response_model=UserResponse)
 async def setup_telegram(
     telegram_data: TelegramSetup,
     user: User = Depends(get_current_user),
@@ -169,7 +169,7 @@ async def setup_telegram(
         )
     
     # Update user
-    user.telegram_chat_id = telegram_data.telegram_chat_id
+    user.telegram_id = telegram_data.telegram_chat_id
     user.is_2fa_enabled = True
     
     db.commit()

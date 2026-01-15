@@ -1,4 +1,5 @@
-const API_BASE_URL = 'http://localhost:8000/api';
+// Use environment variable for API URL, fallback to localhost for development
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 interface ApiError {
   detail: string;
@@ -23,10 +24,19 @@ class ApiService {
       (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...options,
-      headers,
-    });
+    let response: Response;
+    try {
+      response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        ...options,
+        headers,
+      });
+    } catch (error) {
+      // Network error - backend is not reachable
+      console.error('Network error:', error);
+      throw new Error(
+        'Unable to connect to the server. Please check if the backend is running and CORS is configured correctly.'
+      );
+    }
 
     if (!response.ok) {
       if (response.status === 401) {
@@ -61,7 +71,7 @@ class ApiService {
   }
 
   async register(username: string, email: string, password: string) {
-    return this.request<{ message: string }>('/auth/register', {
+    return this.request<User>('/auth/register', {
       method: 'POST',
       body: JSON.stringify({ username, email, password }),
     });

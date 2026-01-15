@@ -27,5 +27,8 @@ python-dotenv==1.0.0
 pydantic==2.5.3
 pydantic-settings==2.1.0
 
-# Email (optional для email 2FA в бъдеще)
-# python-multipart already included above
+# HTTP Requests (for health checks and external APIs)
+requests==2.31.0
+
+# Email validation (required by Pydantic)
+email-validator==2.1.0

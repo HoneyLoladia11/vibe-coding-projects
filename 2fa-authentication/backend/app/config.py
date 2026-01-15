@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     
     # Application
     debug: bool = True
+    cors_origins: str = ""  # Comma-separated list of additional allowed origins
     
     class Config:
         env_file = ".env"

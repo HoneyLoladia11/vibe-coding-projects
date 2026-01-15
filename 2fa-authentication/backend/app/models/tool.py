@@ -37,6 +37,9 @@ class Tool(Base):
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
     approved_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     
+    # Rejection reason (when status = REJECTED)
+    rejection_reason = Column(Text, nullable=True)
+    
     # Metadata
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

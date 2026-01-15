@@ -82,9 +82,11 @@ async def approve_tool(
     # Update status
     if approval.approved:
         tool.status = ToolStatus.APPROVED
+        tool.rejection_reason = None  # Clear any previous rejection reason
         action = "approve"
     else:
         tool.status = ToolStatus.REJECTED
+        tool.rejection_reason = approval.reason  # Save rejection reason!
         action = "reject"
     
     tool.approved_by = user.id

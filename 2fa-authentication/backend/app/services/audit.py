@@ -14,31 +14,15 @@ class AuditService:
         action: str,
         entity_type: str,
         entity_id: Optional[int] = None,
-        details: Optional[Dict[str, Any]] = None,
-        ip_address: Optional[str] = None
+        details: Optional[Dict[str, Any]] = None
     ) -> AuditLog:
-        """
-        Log a user action to the audit log
-        
-        Args:
-            db: Database session
-            user: User performing the action
-            action: Action name (e.g., "create", "update", "delete", "approve")
-            entity_type: Type of entity (e.g., "tool", "user")
-            entity_id: ID of the affected entity
-            details: Additional details as dictionary
-            ip_address: User's IP address
-            
-        Returns:
-            AuditLog: Created audit log entry
-        """
+        """Log a user action to the audit log"""
         audit_log = AuditLog(
             user_id=user.id,
             action=action,
             entity_type=entity_type,
             entity_id=entity_id,
-            details=details,
-            ip_address=ip_address
+            details=details
         )
         
         db.add(audit_log)
@@ -53,17 +37,7 @@ class AuditService:
         user_id: int,
         limit: int = 50
     ) -> list[AuditLog]:
-        """
-        Get recent activity for a specific user
-        
-        Args:
-            db: Database session
-            user_id: User ID
-            limit: Maximum number of records to return
-            
-        Returns:
-            List of audit log entries
-        """
+        """Get recent activity for a specific user"""
         return db.query(AuditLog)\
             .filter(AuditLog.user_id == user_id)\
             .order_by(AuditLog.timestamp.desc())\
@@ -77,18 +51,7 @@ class AuditService:
         entity_id: int,
         limit: int = 50
     ) -> list[AuditLog]:
-        """
-        Get history for a specific entity
-        
-        Args:
-            db: Database session
-            entity_type: Type of entity
-            entity_id: Entity ID
-            limit: Maximum number of records to return
-            
-        Returns:
-            List of audit log entries
-        """
+        """Get history for a specific entity"""
         return db.query(AuditLog)\
             .filter(
                 AuditLog.entity_type == entity_type,
