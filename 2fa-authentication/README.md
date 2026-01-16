@@ -138,7 +138,7 @@ This will start:
 - Frontend (port 5173)
 
 **Access the application:**
-- Frontend: http://localhost:5173
+- Frontend: http://localhost:8080
 - Backend API: http://localhost:8000
 - API Documentation: http://localhost:8000/docs
 
@@ -225,13 +225,18 @@ The system has been tested with:
 ## 📝 Development Notes
 
 ### Recent Fixes
-- ✅ Fixed password hashing in registration
-- ✅ Added telegram_id validation
-- ✅ Implemented /enable-2fa endpoint
-- ✅ Fixed enum values_callable for lowercase
-- ✅ Removed ip_address from audit logs
-- ✅ Simplified verify_chat_id logic
-- ✅ Standardized tools response format
+- ✅ Fixed API/Frontend response format sync (tools, comments return {data, total})
+- ✅ Fixed database schema issues (enums, foreign keys, nullable fields)
+- ✅ Fixed search functionality
+- ✅ Implemented proper Alembic migrations (removed create_all())
+- ✅ Moved sensitive config to .env file
+- ✅ Fixed Tool rating display on Dashboard and My Tools
+- ✅ Fixed comments creation and retrieval
+- ✅ Fixed 2FA Telegram integration
+- ✅ Fixed Admin panel (statistics, approve/reject tools, user management)
+- ✅ Fixed password change functionality
+- ✅ Added input validation for comments (min 10 chars) and tool description
+- ✅ Fixed login error messages
 
 ### Key Components
 - **Authentication Flow**: Register → Login → (2FA if enabled) → JWT Token
